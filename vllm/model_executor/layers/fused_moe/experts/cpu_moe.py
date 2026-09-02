@@ -166,6 +166,20 @@ def select_experts(
             e_score_correction_bias=e_score_correction_bias,
         )
     elif custom_routing_function is None:
+        if scoring_func == "sigmoid":
+            # One expert group makes the group masking a no-op, leaving the
+            # plain sigmoid top-k that MiniMax2 routing asks for.
+            return grouped_topk(
+                hidden_states=hidden_states,
+                gating_output=router_logits,
+                topk=top_k,
+                renormalize=renormalize,
+                num_expert_group=1,
+                topk_group=1,
+                scoring_func=scoring_func,
+                routed_scaling_factor=routed_scaling_factor,
+                e_score_correction_bias=e_score_correction_bias,
+            )
         assert scoring_func == "softmax"
         topk_logit_vals, topk_idx = torch.topk(
             router_logits, k=top_k, dim=-1, sorted=False
